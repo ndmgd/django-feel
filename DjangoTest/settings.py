@@ -26,7 +26,8 @@ SECRET_KEY = "django-insecure-xqvgze&h0h*w(#-)$l@xkj0(ummoqgnx&gc=len1_t*dvzgt!@
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# 格式：应用名.模型名（你的SysUser在user应用下）Django 使用你的 SysUser 作为默认用户模型
+AUTH_USER_MODEL = "user.SysUser"
 
 # Application definition
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # REST框架（可选，简化接口开发）
     "rest_framework",
+    "rest_framework_simplejwt",  # Django 中集成 JWT（JSON Web Token）
     "user.apps.UserConfig",
     "menu.apps.MenuConfig",
     "feellist.apps.FeellistConfig",
