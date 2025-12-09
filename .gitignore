@@ -64,6 +64,9 @@ django_debug.log
 # 迁移备份/临时文件
 migrations/backup/
 *.migrate.tmp
+# 只忽略migrations下的缓存，保留迁移文件
+**/migrations/__pycache__/
+**/migrations/*.pyc
 
 # ========================== 环境/部署 忽略 ==========================
 # 环境变量文件

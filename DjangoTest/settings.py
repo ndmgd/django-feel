@@ -125,9 +125,9 @@ DATABASES = {
         # MySQL用户名（默认root，生产环境建议创建专用用户）
         "USER": "root",
         # MySQL密码（你的数据库密码）
-        "PASSWORD": "csy202ml!&",
+        # "PASSWORD": "csy202ml!&",
         # 数据库地址（本地填localhost/127.0.0.1，远程填服务器IP）
-        "HOST": "localhost",
+        # "HOST": "localhost",
         # 端口（默认3306，若修改过需对应调整）
         "PORT": "3306",
         # 可选：连接参数（解决中文乱码、时区等问题）
@@ -178,3 +178,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+# ========== 关键：引入本地配置 ==========
+try:
+    # 导入local_settings.py，覆盖上面的配置
+    from .local_settings import *
+except ImportError:
+    # 若没有local_settings.py，抛出提示（避免忘记创建）
+    raise ImportError("请在项目根目录创建local_settings.py，配置本地数据库密码/HOST等")
