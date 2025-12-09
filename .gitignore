@@ -1,0 +1,95 @@
+# ========================== Python 通用忽略 ==========================
+# 字节码文件
+__pycache__/
+*.py[cod]
+*class java.lang.String
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+venv/
+env/
+ENV/
+env.local/
+env.test/
+env.prod/
+
+# 测试/覆盖率报告
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ========================== Django 项目专属忽略 ==========================
+# 本地配置文件（避免覆盖服务器/他人配置）
+local_settings.py
+# 数据库文件（SQLite）
+db.sqlite3
+db.sqlite3-journal
+db.sqlite
+db.sqlite-journal
+# 媒体文件（用户上传）
+media/
+# 静态文件（collectstatic 生成的）
+static/
+staticfiles/
+# Django 调试工具
+django_debug.log
+# 迁移备份/临时文件
+migrations/backup/
+*.migrate.tmp
+
+# ========================== 环境/部署 忽略 ==========================
+# 环境变量文件
+.env
+.env.*
+!.env.example  # 保留示例环境文件
+# 服务器/部署配置
+*.conf
+*.pid
+*.log
+logs/
+# Docker 相关（如有）
+.dockerignore
+docker-compose.override.yml
+# Nginx/Apache 配置
+nginx.conf
+apache.conf
+# 系统临时文件
+.DS_Store       # MacOS
+Thumbs.db       # Windows
+*.swp           # Vim 交换文件
+*.swo
+*~
+# IDE 配置（如需共享项目配置可注释）
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
