@@ -15,7 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
 from django.urls import path, include
 
 # 导入api应用的视图
@@ -28,7 +27,7 @@ urlpatterns = [
     # 配置POST测试接口
     path("api/test-post/", test_post, name="test_post"),
     path("user/", include("user.urls")),
-    # path('feellist/', include('feellist.urls')),
+    path('feellist/', include('feellist.urls')),
     # path('role/', include('role.urls')),
     # path('menu/', include('menu.urls')),
 ]

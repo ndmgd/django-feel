@@ -15,17 +15,16 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-xqvgze&h0h*w(#-)$l@xkj0(ummoqgnx&gc=len1_t*dvzgt!@"
+# SECRET_KEY = "django-insecure-xqvgze&h0h*w(#-)$l@xkj0(ummoqgnx&gc=len1_t*dvzgt!@"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 # 格式：应用名.模型名（你的SysUser在user应用下）Django 使用你的 SysUser 作为默认用户模型
 AUTH_USER_MODEL = "user.SysUser"
 
@@ -65,10 +64,10 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True  # 关键：必须设为True
 # 跨域配置（核心）
 # 允许的前端域名（Vue默认运行在8080端口，根据实际修改）
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # 替换为你的前端地址
-    "http://127.0.0.1:5173",  # 两种形式都加上，避免兼容问题
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",  # 替换为你的前端地址
+#     "http://127.0.0.1:5173",  # 两种形式都加上，避免兼容问题
+# ]
 # 允许的请求方法
 CORS_ALLOW_METHODS = [
     "GET",
@@ -110,7 +109,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "DjangoTest.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
@@ -123,7 +121,7 @@ DATABASES = {
         # 数据库名（需提前在MySQL中创建，如手动执行 CREATE DATABASE django_feel DEFAULT CHARSET utf8mb4;）
         "NAME": "djangofeel",
         # MySQL用户名（默认root，生产环境建议创建专用用户）
-        "USER": "root",
+        # "USER": "root",
         # MySQL密码（你的数据库密码）
         # "PASSWORD": "csy202ml!&",
         # 数据库地址（本地填localhost/127.0.0.1，远程填服务器IP）
@@ -141,7 +139,6 @@ DATABASES = {
         },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -161,7 +158,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -172,7 +168,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
