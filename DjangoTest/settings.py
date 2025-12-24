@@ -18,11 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = "django-insecure-xqvgze&h0h*w(#-)$l@xkj0(ummoqgnx&gc=len1_t*dvzgt!@"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
 
 # ALLOWED_HOSTS = []
 # 格式：应用名.模型名（你的SysUser在user应用下）Django 使用你的 SysUser 作为默认用户模型
@@ -60,6 +56,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# 【公共】跨域基础配置（所有环境通用的跨域规则，白名单放local）
 # 1. 允许跨域请求携带凭证（Cookie/Token等）
 CORS_ALLOW_CREDENTIALS = True  # 关键：必须设为True
 # 跨域配置（核心）
@@ -89,9 +86,9 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
-
+# 【公共】根URL配置
 ROOT_URLCONF = "DjangoTest.urls"
-
+# 【公共】模板配置（所有环境通用）
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -106,12 +103,12 @@ TEMPLATES = [
         },
     },
 ]
-
+# 【公共】WSGI配置
 WSGI_APPLICATION = "DjangoTest.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# 【公共】数据库基础配置（无敏感信息，用户名/密码/HOST放local）
 # MySQL数据库配置
 # work配置
 DATABASES = {
@@ -142,7 +139,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# 【公共】密码验证规则（所有环境通用）
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -160,7 +157,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
-
+# 【公共】国际化基础配置（所有环境通用）
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -171,7 +168,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+# 【公共】静态文件基础配置
 STATIC_URL = "static/"
 # ========== 关键：引入本地配置 ==========
 try:

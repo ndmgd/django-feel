@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 # 导入修改后的UserScore模型
-from .models import UserScore
+from .models import UserScore, NetworkSceneData
 
 
 # 序列化器：适配UserScore模型
@@ -262,6 +262,222 @@ class UserScoreDetailView(APIView):
         return Response({
             "code": 204,
             "msg": "数据删除成功",
+            "list": [],
+            "total": 0
+        }, status=status.HTTP_204_NO_CONTENT)
+
+# ===================== NetworkSceneData 新增序列化器和接口 =====================
+class NetworkSceneDataSerializer(serializers.ModelSerializer):
+    """
+    序列化器：NetworkSceneData模型专属
+    特性：
+    1. 序列化/反序列化模型所有字段
+    2. 自定义枚举字段的友好名称展示（如has_complaint_display、indoor_outdoor_display等）
+    3. 自动验证字段合法性（如经纬度范围、评分0-100等）
+    """
+    # 自定义字段：投诉状态友好名称（0=无投诉，1=有投诉）
+    has_complaint_display = serializers.CharField(source='get_has_complaint_display', read_only=True)
+    # 自定义字段：室内外友好名称
+    indoor_outdoor_display = serializers.CharField(source='get_indoor_outdoor_display', read_only=True)
+    # 自定义字段：区域类型友好名称
+    area_type_display = serializers.CharField(source='get_area_type_display', read_only=True)
+
+    class Meta:
+        model = NetworkSceneData
+        fields = "__all__"  # 序列化所有字段（也可指定具体字段：fields = ['date', 'city', ...]）
+
+
+class NetworkSceneDataListView(APIView):
+    """
+    小区场景数据列表接口（对齐UserScore逻辑：多条件筛选 + 分页 + 新增）
+    - GET：按地市/小区ID/投诉状态/区域类型筛选，支持分页
+    - POST：新增单条小区场景数据
+    """
+
+    def get(self, request):
+        """
+        GET请求：多条件筛选 + 分页查询
+        筛选维度：地市、小区ID、投诉状态、区域类型、一级场景
+        """
+        # ========== 打印请求调试信息 ==========
+        print("===== 小区场景数据接口 - 接收的请求信息 =====")
+        print("1. URL参数：", dict(request.GET))
+        print("2. 请求体：", str(request.body))
+        print("3. 完整URL：", request.build_absolute_uri())
+        print("4. 请求方法：", request.method)
+        print("==========================================\n")
+
+        # ===================== 1. 获取前端参数 =====================
+        # 筛选参数（去空格，避免无效筛选）
+        city = request.GET.get('city', '').strip()  # 地市筛选（模糊匹配）
+        cell_id = request.GET.get('cell_id', '').strip()  # 小区ID（精准匹配）
+        has_complaint = request.GET.get('has_complaint', '').strip()  # 投诉状态（0/1）
+        area_type = request.GET.get('area_type', '').strip()  # 区域类型（rural/town/city/county）
+        scene_level1 = request.GET.get('scene_level1', '').strip()  # 一级场景（居家/办公/出行）
+
+        # 分页参数
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 10)
+
+        # 调试日志
+        print("=" * 60)
+        print(f"【小区数据】地市：{city} | 小区ID：{cell_id} | 投诉状态：{has_complaint}")
+        print(f"【小区数据】区域类型：{area_type} | 一级场景：{scene_level1}")
+        print("=" * 60)
+
+        # ===================== 2. 初始化查询集并筛选 =====================
+        queryset = NetworkSceneData.objects.all().order_by('-id')  # 按ID倒序
+        has_filter = False  # 标记是否有筛选条件
+
+        # 地市筛选：模糊匹配（如输入"北京"能匹配"北京市朝阳区"）
+        if city:
+            queryset = queryset.filter(city__contains=city)
+            has_filter = True
+            print(f"【小区数据】地市筛选后数量：{queryset.count()}")
+
+        # 小区ID筛选：转换为整数，避免非数字报错
+        if cell_id:
+            try:
+                cell_id_int = int(cell_id)
+                queryset = queryset.filter(cell_id=cell_id_int)
+                has_filter = True
+                print(f"【小区数据】小区ID筛选后数量：{queryset.count()}")
+            except ValueError:
+                return Response({
+                    "code": 400,
+                    "msg": "小区ID必须是数字格式",
+                    "list": [],
+                    "total": 0
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 投诉状态筛选（0/1）
+        if has_complaint in ['0', '1']:
+            queryset = queryset.filter(has_complaint=int(has_complaint))
+            has_filter = True
+            print(f"【小区数据】投诉状态筛选后数量：{queryset.count()}")
+
+        # 区域类型筛选（匹配枚举值：rural/town/city/county）
+        if area_type:
+            queryset = queryset.filter(area_type=area_type)
+            has_filter = True
+            print(f"【小区数据】区域类型筛选后数量：{queryset.count()}")
+
+        # 一级场景筛选（模糊匹配）
+        if scene_level1:
+            queryset = queryset.filter(scene_level1__contains=scene_level1)
+            has_filter = True
+            print(f"【小区数据】一级场景筛选后数量：{queryset.count()}")
+
+        # ===================== 3. 分页处理 =====================
+        paginator = Paginator(queryset, page_size)
+        try:
+            page_int = int(page)
+            page_data = paginator.page(page_int)
+        except PageNotAnInteger:
+            page_data = paginator.page(1)
+        except EmptyPage:
+            page_data = paginator.page(paginator.num_pages)
+
+        # ===================== 4. 序列化 + 响应 =====================
+        serializer = NetworkSceneDataSerializer(page_data, many=True)
+        total = paginator.count
+
+        print(f"【小区数据】最终筛选后总数量：{total}")
+
+        # 有筛选条件但无数据时返回404
+        if has_filter and total == 0:
+            return Response({
+                "code": 404,
+                "msg": "查询的小区场景数据不存在",
+                "list": [],
+                "total": 0
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # 正常返回
+        return Response({
+            "code": 200,
+            "msg": "小区场景数据查询成功",
+            "list": serializer.data,
+            "total": total
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        POST请求：新增单条小区场景数据
+        逻辑和UserScore对齐，自动验证字段合法性
+        """
+        serializer = NetworkSceneDataSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "code": 201,
+                "msg": "小区场景数据新增成功",
+                "list": [serializer.data],
+                "total": 1
+            }, status=status.HTTP_201_CREATED)
+
+        # 验证失败返回错误
+        return Response({
+            "code": 400,
+            "msg": "小区场景数据新增失败",
+            "error": serializer.errors,
+            "list": [],
+            "total": 0
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NetworkSceneDataDetailView(APIView):
+    """
+    小区场景数据详情接口（单条CRUD）
+    - GET：查询单条数据（按ID）
+    - PUT：修改单条数据（按ID）
+    - DELETE：删除单条数据（按ID）
+    """
+
+    def get_object(self, pk):
+        """通用方法：按ID获取数据，不存在则404"""
+        return get_object_or_404(NetworkSceneData, pk=pk)
+
+    def get(self, request, pk):
+        """查询单条小区场景数据"""
+        obj = self.get_object(pk)
+        serializer = NetworkSceneDataSerializer(obj)
+        return Response({
+            "code": 200,
+            "msg": "小区场景数据查询成功",
+            "list": [serializer.data],
+            "total": 1
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        """修改单条小区场景数据"""
+        obj = self.get_object(pk)
+        # partial=True 支持局部更新（可选，根据业务需求调整）
+        serializer = NetworkSceneDataSerializer(obj, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "code": 200,
+                "msg": "小区场景数据修改成功",
+                "list": [serializer.data],
+                "total": 1
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "code": 400,
+            "msg": "小区场景数据修改失败",
+            "error": serializer.errors,
+            "list": [],
+            "total": 0
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """删除单条小区场景数据"""
+        obj = self.get_object(pk)
+        obj.delete()
+        return Response({
+            "code": 204,
+            "msg": "小区场景数据删除成功",
             "list": [],
             "total": 0
         }, status=status.HTTP_204_NO_CONTENT)
