@@ -26,8 +26,8 @@ urlpatterns = [
     path("api/test-get/", test_get, name="test_get"),
     # 配置POST测试接口
     path("api/test-post/", test_post, name="test_post"),
-    path("user/", include("user.urls")),
-    path('feellist/', include('feellist.urls')),
+    path("api/user/", include("user.urls")),
+    path('api/feellist/', include('feellist.urls')),
     # path('role/', include('role.urls')),
     # path('menu/', include('menu.urls')),
 ]

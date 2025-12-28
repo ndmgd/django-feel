@@ -155,6 +155,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Django 自动补全 /
+APPEND_SLASH = True
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 # 【公共】国际化基础配置（所有环境通用）
