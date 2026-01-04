@@ -21,6 +21,8 @@ class UserScoreSerializer(serializers.ModelSerializer):
     """
     # 自定义字段：展示网络类型的友好名称（基于模型的choices）
     netType_display = serializers.CharField(source='get_netType_display', read_only=True)
+    # 自定义字段：一级场景友好名称
+    sceneType_display = serializers.CharField(source='get_sceneType_display', read_only=True)
 
     class Meta:
         model = UserScore  # 关联的数据库模型
@@ -266,6 +268,7 @@ class UserScoreDetailView(APIView):
             "total": 0
         }, status=status.HTTP_204_NO_CONTENT)
 
+
 # ===================== NetworkSceneData 新增序列化器和接口 =====================
 class NetworkSceneDataSerializer(serializers.ModelSerializer):
     """
@@ -275,8 +278,14 @@ class NetworkSceneDataSerializer(serializers.ModelSerializer):
     2. 自定义枚举字段的友好名称展示（如has_complaint_display、indoor_outdoor_display等）
     3. 自动验证字段合法性（如经纬度范围、评分0-100等）
     """
+    # 自定义字段：厂家友好名称
+    manufacturer_display = serializers.CharField(source='get_manufacturer_display', read_only=True)
+    # 自定义字段：承包商友好名称
+    contractor_display = serializers.CharField(source='get_contractor_display', read_only=True)
     # 自定义字段：投诉状态友好名称（0=无投诉，1=有投诉）
     has_complaint_display = serializers.CharField(source='get_has_complaint_display', read_only=True)
+    # 自定义字段：一级场景友好名称
+    scene_level1_display = serializers.CharField(source='get_scene_level1_display', read_only=True)
     # 自定义字段：室内外友好名称
     indoor_outdoor_display = serializers.CharField(source='get_indoor_outdoor_display', read_only=True)
     # 自定义字段：区域类型友好名称
@@ -329,6 +338,12 @@ class NetworkSceneDataListView(APIView):
         queryset = NetworkSceneData.objects.all().order_by('-id')  # 按ID倒序
         has_filter = False  # 标记是否有筛选条件
 
+        # # 厂家筛选（0/1）
+        # if contractor in ['0', '1']:
+        #     queryset = queryset.filter(contractor=int(contractor))
+        #     has_filter = True
+        #     print(f"【小区数据】投诉状态筛选后数量：{queryset.count()}")
+
         # 地市筛选：模糊匹配（如输入"北京"能匹配"北京市朝阳区"）
         if city:
             queryset = queryset.filter(city__contains=city)
@@ -362,11 +377,25 @@ class NetworkSceneDataListView(APIView):
             has_filter = True
             print(f"【小区数据】区域类型筛选后数量：{queryset.count()}")
 
-        # 一级场景筛选（模糊匹配）
+        # 一级场景筛选（模糊匹配），中文改为精准匹配数字编码
+        # if scene_level1:
+        #     queryset = queryset.filter(scene_level1__contains=scene_level1)
+        #     has_filter = True
+        #     print(f"【小区数据】一级场景筛选后数量：{queryset.count()}")
+        # 修复后代码
         if scene_level1:
-            queryset = queryset.filter(scene_level1__contains=scene_level1)
-            has_filter = True
-            print(f"【小区数据】一级场景筛选后数量：{queryset.count()}")
+            try:
+                scene_level1_int = int(scene_level1)  # 转换为整数（防非数字）
+                queryset = queryset.filter(scene_level1=scene_level1_int)  # 精准匹配（数字字段必须用=）
+                has_filter = True
+                print(f"【小区数据】一级场景筛选后数量：{queryset.count()}")
+            except ValueError:
+                return Response({
+                    "code": 400,
+                    "msg": "一级场景必须是数字格式（0-7）",
+                    "list": [],
+                    "total": 0
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # ===================== 3. 分页处理 =====================
         paginator = Paginator(queryset, page_size)

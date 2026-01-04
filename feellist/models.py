@@ -51,9 +51,6 @@ class UserScore(models.Model):
         choices=[
             (0, "5G"),  # 第一个值改为数字（不再是字符串）
             (1, "4G"),
-            (2, "WiFi"),
-            (3, "宽带"),
-            (4, "其他")
         ]
     )
 
@@ -75,7 +72,15 @@ class UserScore(models.Model):
         null=True,
         blank=True
     )
-
+    # ECI：纯数字类型（BigIntegerField避免数值溢出，支持更大范围的数字ID）
+    eci = models.BigIntegerField(
+        verbose_name="小区ID",
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(0, message="小区ID不能为负数")  # 确保ID为非负整数
+        ]
+    )
     # 小区ID：纯数字类型（BigIntegerField避免数值溢出，支持更大范围的数字ID）
     cellId = models.BigIntegerField(
         verbose_name="小区ID",
@@ -102,15 +107,26 @@ class UserScore(models.Model):
         blank=True
     )
 
-    # 一级场景类型：短文本（如"居家"、"办公"、"出行"）
-    sceneType = models.CharField(
-        max_length=50,
+    # 一级场景类型：改为数字编码
+    sceneType = models.IntegerField(  # 从 CharField 改为 IntegerField
+        # max_length=50,  # IntegerField 可移除该参数（可选，不影响）
         verbose_name="一级场景类型",
         null=True,
-        blank=True
+        blank=True,
+        choices=[
+            # 数字编码 + 场景名称 对应关系
+            (0, "住宅小区"),
+            (1, "重点商超"),
+            (2, "政务中心"),
+            (3, "医疗机构"),
+            (4, "文旅景区"),
+            (5, "商务楼宇及酒店"),
+            (6, "交通枢纽"),
+            (7, "高等学校"),
+        ]
     )
 
-    # 二级场景类型：短文本（如"居家-客厅"、"办公-会议室"）
+    # 二级场景类型：短文本（）
     sceneSubType = models.CharField(
         max_length=100,
         verbose_name="二级场景类型",
@@ -137,6 +153,7 @@ class UserScore(models.Model):
         """后台显示友好名称，便于调试"""
         return f"{self.city}-{self.phonenuber}-{self.score}"
 
+
 # 新增的第二个 Model 类（对应你提供的表格字段）
 class NetworkSceneData(models.Model):
     """
@@ -158,8 +175,8 @@ class NetworkSceneData(models.Model):
         blank=True
     )
 
-    # 基站ID：大整数类型（支持超大数字ID，避免溢出），非负
-    base_station_id = models.BigIntegerField(
+    # eciID：大整数类型（支持超大数字ID，避免溢出），非负
+    eci = models.BigIntegerField(
         verbose_name="基站ID",
         null=True,
         blank=True,
@@ -201,19 +218,30 @@ class NetworkSceneData(models.Model):
     )
 
     # 厂家：短文本，最多50字（如"华为"、"中兴"、"爱立信"）
-    manufacturer = models.CharField(
+    manufacturer = models.IntegerField(
         max_length=50,
         verbose_name="厂家",
         null=True,
-        blank=True
+        blank=True,
+        choices=[
+            (1, "华为"),
+            (2, "中兴"),
+            (7, "诺基亚"),
+            (8, "大唐"),
+
+        ]
     )
 
     # 承建方：短文本，最多100字（如"中国通信建设集团"、"华为技术服务有限公司"）
-    contractor = models.CharField(
-        max_length=100,
+    contractor = models.IntegerField(
+        # max_length=100,
         verbose_name="承建方",
         null=True,
-        blank=True
+        blank=True,
+        choices=[
+            (0, "电信"),  # 数据库存储0，后台/admin显示"无投诉"
+            (1, "联通")  # 数据库存储1，后台/admin显示"有投诉"
+        ]
     )
 
     # 是否存在关联投诉工单：整数枚举（0=无投诉，1=有投诉）
@@ -249,7 +277,6 @@ class NetworkSceneData(models.Model):
         blank=True
     )
 
-
     # 关联场景ID：字符型，最多50字（和UserScore的sceneId字段类型保持一致）
     scene_id = models.CharField(
         max_length=50,
@@ -259,14 +286,25 @@ class NetworkSceneData(models.Model):
     )
 
     # 一级场景：短文本，最多50字（如"居家"、"办公"、"出行"）
-    scene_level1 = models.CharField(
-        max_length=50,
+    scene_level1 = models.IntegerField(
+        # max_length=50,
         verbose_name="一级场景",
         null=True,
-        blank=True
+        blank=True,
+        choices=[
+            # 数字编码 + 场景名称 对应关系
+            (0, "住宅小区"),
+            (1, "重点商超"),
+            (2, "政务中心"),
+            (3, "医疗机构"),
+            (4, "文旅景区"),
+            (5, "商务楼宇及酒店"),
+            (6, "交通枢纽"),
+            (7, "高等学校"),
+        ]
     )
 
-    # 二级场景：短文本，最多100字（如"居家-客厅"、"办公-会议室"）
+    # 二级场景：短文本，最多100字
     scene_level2 = models.CharField(
         max_length=100,
         verbose_name="二级场景",
@@ -319,10 +357,10 @@ class NetworkSceneData(models.Model):
         verbose_name_plural = "小区数据表"  # 后台显示的多表名称（避免自动加s）
         indexes = [
             # 常用查询字段加索引，提升查询效率
-            models.Index(fields=["date"]),        # 按日期查询
-            models.Index(fields=["cell_id"]),     # 按小区ID查询
-            models.Index(fields=["scene_id"]),    # 按场景ID查询
-            models.Index(fields=["city"]),        # 按地市查询
+            models.Index(fields=["date"]),  # 按日期查询
+            models.Index(fields=["cell_id"]),  # 按小区ID查询
+            models.Index(fields=["scene_id"]),  # 按场景ID查询
+            models.Index(fields=["city"]),  # 按地市查询
         ]
 
     def __str__(self):

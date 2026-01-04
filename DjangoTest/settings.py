@@ -19,7 +19,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 
-
 # ALLOWED_HOSTS = []
 # 格式：应用名.模型名（你的SysUser在user应用下）Django 使用你的 SysUser 作为默认用户模型
 AUTH_USER_MODEL = "user.SysUser"
@@ -59,12 +58,6 @@ MIDDLEWARE = [
 # 【公共】跨域基础配置（所有环境通用的跨域规则，白名单放local）
 # 1. 允许跨域请求携带凭证（Cookie/Token等）
 CORS_ALLOW_CREDENTIALS = True  # 关键：必须设为True
-# 跨域配置（核心）
-# 允许的前端域名（Vue默认运行在8080端口，根据实际修改）
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",  # 替换为你的前端地址
-#     "http://127.0.0.1:5173",  # 两种形式都加上，避免兼容问题
-# ]
 # 允许的请求方法
 CORS_ALLOW_METHODS = [
     "GET",
