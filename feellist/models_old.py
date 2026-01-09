@@ -9,7 +9,7 @@ from feellist.fileds.meta import FieldComposeMeta
 from feellist.fileds.user_indicator_fileds import user_indicator_fields
 
 
-class UserScore(models.Model, metaclass=FieldComposeMeta):
+class UserScore_old(models.Model, metaclass=FieldComposeMeta):
     _compose_city = city_field
     _compose_phone = phone_field
     _compose_net_type = net_type_field
@@ -33,7 +33,7 @@ class UserScore(models.Model, metaclass=FieldComposeMeta):
         return f"{self.city}-{self.phone_number}-{self.cell_score}"
 
 
-class NetworkSceneData(models.Model, metaclass=FieldComposeMeta):
+class NetworkSceneData_old(models.Model, metaclass=FieldComposeMeta):
     """网络场景数据表（修正后）"""
     # 自有字段
     # 组合公共字段（解包）
